@@ -1,32 +1,10 @@
-# code by romer adapted to llama
-
 import streamlit as st
-
-# LLM section
-import llama_index
-from llama_index.llms.ollama import Ollama
-from llama_index.core import Settings
-
-# Loading/Ingestion section
-from llama_index.core import SimpleDirectoryReader
-from llama_index.readers.file import ( DocxReader, PDFReader, PyMuPDFReader, ImageReader, PptxReader , FlatReader, HTMLTagReader )  # readers baseado no tipo de arquivo
-
-# Indexing and Embedding section
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.cohere import Cohere
+from llama_index.embeddings.cohere import CohereEmbedding
 try:
-  from llama_index import VectorStoreIndex
+  from llama_index import VectorStoreIndex, ServiceContext, Document, SimpleDirectoryReader
 except ImportError:
-  from llama_index.core import VectorStoreIndex
-
-# Storing section
-import pysqlite3
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-import chromadb
-from llama_index.core import VectorStoreIndex
-from llama_index.vector_stores.chroma import ChromaVectorStore
-from llama_index.core import StorageContext
-import os
+  from llama_index.core import VectorStoreIndex, ServiceContext, Document, SimpleDirectoryReader
 
 st.set_page_config(page_title="Chat with the DB Knowledge Base, powered by LlamaIndex", page_icon="🦙", layout="centered", initial_sidebar_state="auto", menu_items=None)
 #cohere.api_key = st.secrets.cohere_key
@@ -39,82 +17,16 @@ if "messages" not in st.session_state.keys(): # Initialize the chat messages his
     ]
 
 @st.cache_resource(show_spinner=False)
-# Reader with `SimpleDirectoryReader`
-def reader_and_loader_docs(load_file):
-    _files = './data'
-    global documents
-    global index
-    global vector_store
-    global storage_context
-    if load_file.endswith == 'pdf':
-        parser = PDFReader()        
-        file_extractor = {".pdf": parser}
-        print(file_extractor)
-    elif load_file.endswith == 'docx':
-        parser = DocxReader()        
-        file_extractor = {".docx": parser}
-        print(file_extractor)
-    elif load_file.endswith == 'jpg' or 'jpeg' or 'png':
-        parser = ImageReader()
-        file_extractor = {
-            ".jpg": parser,
-            ".jpeg": parser,
-            ".png": parser
-            }  # Add other image formats as needed
-        print(file_extractor)
-    elif load_file.endswith == 'pptx':
-        parser = PptxReader()
-        file_extractor = {".pptx": parser}
-        print(file_extractor)
-    elif load_file.endswith == 'html':
-        parser = HTMLTagReader()
-        file_extractor = {".html": parser}
-        print(file_extractor)
-    elif load_file.endswith == 'txt' or 'log':
-        parser = FlatReader()
-        file_extractor = {
-            ".txt": parser, 
-            ".log" : parser}
-        print(file_extractor)
-    else:
-        print("Não existe loader para arquivo do tipo " + str(_files.endswith))
-        exit()
-
-    documents = SimpleDirectoryReader( _files, file_extractor=file_extractor ).load_data()
-    
-    index = VectorStoreIndex.from_documents(documents, storage_context=storage_context, show_progress=True)
-
 def load_data():
     with st.spinner(text="Loading and indexing the SAPC docs – hang tight! This should take 1-2 minutes."):
-        llm = Ollama(model="llama3")
+        reader = SimpleDirectoryReader(input_dir="./data", recursive=True)
+        docs = reader.load_data()
+        # llm = OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert o$
         # index = VectorStoreIndex.from_documents(docs)
-        embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True)
-        
-        Settings.embed_model = embed_model
-        Settings.llm = llm
-        Settings.chunk_size = 512
-        Settings.chunk_overlap = 50
-        Settings.temperature = 0.5
-
-        database_indexed_embedded_files = './database'
-        _files = './data'
-        for filename in os.listdir(_files):
-            load_file = _files + filename
-            reader = reader_and_loader_docs(load_file)
-      
-        # initialize client
-        db = chromadb.PersistentClient(path=database_indexed_embedded_files)
-
-        # get collection
-        chroma_collection = db.get_or_create_collection("quickstart")
-
-        # assign chroma as the vector_store to the context
-        vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-        storage_context = StorageContext.from_defaults(vector_store=vector_store)
-
-        index = VectorStoreIndex.from_vector_store(vector_store, storage_context=storage_context, similarity_top_k=4)
-                
-        #index = VectorStoreIndex.from_documents(docs, service_context=service_context)
+        embed_model = CohereEmbedding(cohere_api_key=st.secrets.cohere_key,model_name="embed-multilingual-v3.0",input_type="search_query")
+        service_context = ServiceContext.from_defaults(llm=Cohere(api_key=st.secrets.cohere_key,model="command", temperature=0.5, system_prompt="You are an expert on Core Network Telecomunnications and your job is to answer technical questions. Assume that all questions are related to Core Network equipments. Keep your answers technical and based on facts – do not hallucinate features."),
+                                                    embed_model=embed_model)
+        index = VectorStoreIndex.from_documents(docs, service_context=service_context)
         return index
 
 index = load_data()
