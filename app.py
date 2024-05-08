@@ -7,6 +7,8 @@ try:
 except ImportError:
   from llama_index.core import VectorStoreIndex, ServiceContext, Document, SimpleDirectoryReader
 
+from llama_index.readers.file import ( DocxReader, PDFReader, PyMuPDFReader, ImageReader, PptxReader , FlatReader, HTMLTagReader )
+
 st.set_page_config(page_title="Chat with the DB Knowledge Base, powered by LlamaIndex", page_icon="🦙", layout="centered", initial_sidebar_state="auto", menu_items=None)
 #cohere.api_key = st.secrets.cohere_key
 st.title("Chat with the DB Knowledge Base, powered by LlamaIndex 💬🦙")
