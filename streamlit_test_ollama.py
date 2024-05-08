@@ -3,6 +3,7 @@
 import streamlit as st
 
 # LLM section
+import llama_index
 from llama_index.llms.ollama import Ollama
 from llama_index.core import Settings
 
