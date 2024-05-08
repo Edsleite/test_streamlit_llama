@@ -3,7 +3,7 @@ ollama
 llama-index-llms-ollama
 
 llama-index-readers-file
-doc2txt
+#doc2txt
 
 sentence-transformers
 llama-index-embeddings-huggingface
