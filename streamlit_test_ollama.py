@@ -22,13 +22,11 @@ if "messages" not in st.session_state.keys(): # Initialize the chat messages his
 
 @st.cache_resource(show_spinner=False)
 def load_data():
-    with st.spinner(text="Loading and indexing the SAPC docs – hang tight! This should take 1-2 minutes."):
+    with st.spinner(text="Loading and indexing the docs – hang tight! This should take 1-2 minutes."):
         reader = SimpleDirectoryReader(input_dir="./data", recursive=True)
         docs = reader.load_data()
-        # llm = OpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert o$
-        # index = VectorStoreIndex.from_documents(docs)
         embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True)
-        service_context = ServiceContext.from_defaults(llm=Ollama(model="command", temperature=0.5, system_prompt="You are an expert on Core Network Telecomunnications and your job is to answer technical questions. Assume that all questions are related to Core Network equipments. Keep your answers technical and based on facts – do not hallucinate features."),
+        service_context = ServiceContext.from_defaults(llm=Ollama(model="lamma3", temperature=0.5, system_prompt="You are an expert on Core Network Telecomunnications and your job is to answer technical questions. Assume that all questions are related to Core Network equipments. Keep your answers technical and based on facts – do not hallucinate features."),
                                                     embed_model=embed_model)        
         index = VectorStoreIndex.from_documents(docs, service_context=service_context)
         return index
@@ -36,8 +34,7 @@ def load_data():
 index = load_data()
 
 if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
-#        st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
-        st.session_state.chat_engine = index.as_query_engine()
+        st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)        
 
 if prompt := st.chat_input("Your question"): # Prompt for user input and save to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -50,8 +47,7 @@ for message in st.session_state.messages: # Display the prior chat messages
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            #response = st.session_state.chat_engine.chat(prompt)
-            response = st.session_state.query_engine.query(prompt)
+            response = st.session_state.chat_engine.chat(prompt)
             st.write(response.response)
             message = {"role": "assistant", "content": response.response}
             st.session_state.messages.append(message) # Add response to message history
