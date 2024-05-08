@@ -1,0 +1,21 @@
+
+# LLM
+pip3 install llama-index
+pip3 install ollama
+pip3 install llama-index-llms-ollama
+
+# Loader
+pip3 install llama-index-readers-file
+pip3 install doc2txt
+
+# Indexing and Embedding section
+pip3 install sentence-transformers
+pip3 install llama-index-embeddings-huggingface
+pip3 install llama-index-embeddings-instructor
+
+# Storing section
+pip install llama-index-vector-stores-chroma
+pip3 install chromadb
+pip3 install pysqlite3-binary
+
+
