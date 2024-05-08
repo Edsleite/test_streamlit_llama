@@ -86,12 +86,6 @@ def reader_and_loader_docs(load_file):
 
 def load_data():
     with st.spinner(text="Loading and indexing the SAPC docs – hang tight! This should take 1-2 minutes."):
-        database_indexed_embedded_files = './database'
-        _files = './data'
-        for filename in os.listdir(_files):
-            load_file = _files + filename
-            reader = reader_and_loader_docs(load_file)
-        #docs = reader.load_data()
         llm = Ollama(model="llama3")
         # index = VectorStoreIndex.from_documents(docs)
         embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True)
@@ -101,7 +95,13 @@ def load_data():
         Settings.chunk_size = 512
         Settings.chunk_overlap = 50
         Settings.temperature = 0.5
-        
+
+        database_indexed_embedded_files = './database'
+        _files = './data'
+        for filename in os.listdir(_files):
+            load_file = _files + filename
+            reader = reader_and_loader_docs(load_file)
+      
         # initialize client
         db = chromadb.PersistentClient(path=database_indexed_embedded_files)
 
