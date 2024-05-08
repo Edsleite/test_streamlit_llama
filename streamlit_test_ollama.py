@@ -25,7 +25,7 @@ def load_data():
     with st.spinner(text="Loading and indexing the docs – hang tight! This should take 1-2 minutes."):
         reader = SimpleDirectoryReader(input_dir="./data", recursive=True)
         docs = reader.load_data()
-        embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True)
+        embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True, input_type="search_query")
         service_context = ServiceContext.from_defaults(llm=Ollama(model="lamma3", temperature=0.5, system_prompt="You are an expert on Core Network Telecomunnications and your job is to answer technical questions. Assume that all questions are related to Core Network equipments. Keep your answers technical and based on facts – do not hallucinate features."),
                                                     embed_model=embed_model)        
         index = VectorStoreIndex.from_documents(docs, service_context=service_context)
