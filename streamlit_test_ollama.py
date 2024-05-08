@@ -54,7 +54,7 @@ def reader_and_loader_docs(load_file):
         parser = DocxReader()        
         file_extractor = {".docx": parser}
         print(file_extractor)
-    elif load_file.endswith == '.jpg' or '.jpeg' or '.png':
+    elif load_file.endswith == 'jpg' or 'jpeg' or 'png':
         parser = ImageReader()
         file_extractor = {
             ".jpg": parser,
@@ -91,7 +91,7 @@ def load_data():
         for filename in os.listdir(_files):
             load_file = _files + filename
             reader = reader_and_loader_docs(load_file)
-        docs = reader.load_data()
+        #docs = reader.load_data()
         llm = Ollama(model="llama3")
         # index = VectorStoreIndex.from_documents(docs)
         embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-large-en-v1.5", trust_remote_code=True)
